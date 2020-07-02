@@ -1,0 +1,125 @@
+---
+apiVersion: v1
+items:
+kind: List
+metadata: {}
+items:
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: jul2020-redcloud3-spring-petclinic-__BRANCH__
+      chart: jul2020-redcloud3-spring-petclinic-__BRANCH__-0.0.1
+      heritage: Tiller
+      release: jul2020-redcloud3-spring-petclinic-__BRANCH__
+    name: jul2020-redcloud3-spring-petclinic-__BRANCH__
+    namespace: __PROJECT__
+  spec:
+    replicas: 1
+    selector:
+      deploymentconfig: jul2020-redcloud3-spring-petclinic-__BRANCH__
+    template:
+      metadata:
+        labels:
+          app: jul2020-redcloud3-spring-petclinic-__BRANCH__
+          release: jul2020-redcloud3-spring-petclinic-__BRANCH__
+          deploymentconfig: jul2020-redcloud3-spring-petclinic-__BRANCH__
+          version: v1
+      spec:
+        imagePullSecrets:
+        - name: docker-registry-credentials
+        containers:
+          - name: jul2020-redcloud3-spring-petclinic-__BRANCH__
+            image: "__IMAGE_TAG__"
+            imagePullPolicy: "Always"
+            ports:
+              - name: http
+                containerPort: 8080
+                protocol: TCP
+            livenessProbe:
+              tcpSocket:
+                port: http
+              initialDelaySeconds: 600
+              timeoutSeconds: 60
+            readinessProbe:
+              tcpSocket:
+                port: http
+            resources:
+              {}
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: jul2020-redcloud3-spring-petclinic-__BRANCH__
+      chart: jul2020-redcloud3-spring-petclinic-__BRANCH__-0.0.1
+      heritage: Tiller
+      release: jul2020-redcloud3-spring-petclinic-__BRANCH__
+      version: v1
+    name: jul2020-redcloud3-spring-petclinic-__BRANCH__
+    namespace: __PROJECT__
+  spec:
+    type: "ClusterIP"
+    ports:
+      - name: http
+        port: 80
+        protocol: TCP
+        targetPort: 8080
+    selector:
+      app: jul2020-redcloud3-spring-petclinic-__BRANCH__
+      release: jul2020-redcloud3-spring-petclinic-__BRANCH__
+
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      haproxy.router.openshift.io/timeout: 11m
+    labels:
+      app: __PROJECT__-jul2020-redcloud3-spring-petclinic-__BRANCH__
+    name: __PROJECT__-jul2020-redcloud3-spring-petclinic-__BRANCH__
+    namespace: istio-system
+  spec:
+    tls:
+    - hosts:
+      - "jul2020-redcloud3-spring-petclinic-__BRANCH__.__PROJECT__.jul2020.perspectatechdemos.com"
+      secretName: "jul2020-perspectatechdemos-com-crt"
+    rules:
+    - host: jul2020-redcloud3-spring-petclinic-__BRANCH__.__PROJECT__.jul2020.perspectatechdemos.com
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: istio-ingressgateway
+            servicePort: 80
+
+- apiVersion: networking.istio.io/v1alpha3
+  kind: VirtualService
+  metadata:
+    name: jul2020-redcloud3-spring-petclinic-__BRANCH__
+    namespace: __PROJECT__
+  spec:
+    hosts:
+    - "jul2020-redcloud3-spring-petclinic-__BRANCH__.__PROJECT__.jul2020.perspectatechdemos.com"
+    gateways:
+    - __PROJECT__-istio-gateway
+    http:
+    - match:
+      - uri:
+          prefix: /
+      route:
+      - destination:
+          host: jul2020-redcloud3-spring-petclinic-__BRANCH__
+          port:
+            number: 80
+
+- apiVersion: networking.istio.io/v1alpha3
+  kind: DestinationRule
+  metadata:
+    name: jul2020-redcloud3-spring-petclinic-__BRANCH__
+    namespace: __PROJECT__
+  spec:
+    host: jul2020-redcloud3-spring-petclinic-__BRANCH__
+    subsets:
+    - name: v1
+      labels:
+        version: v1            
