@@ -189,23 +189,6 @@ spec:
         mattermostSend channel: "${MATTERMOST_CHANNEL}", endpoint: "${MATTERMOST_WEBHOOK}", message: "Job: ${JOB_NAME} \nStage: ${STAGE_NAME}\nBuild: ${BUILD_URL}\nCommit: ${GITHUB_PROJECT_URL}\nArtifact: ${NEXUS_ARTIFACT_URL}"
       }
     }
-    stage('Scan Image') {
-      steps {
-        container(name: 'kaniko-quay', shell: '/busybox/sh') {
-          dir('.') {
-            withEnv(['PATH+EXTRA=/busybox']) {
-              retry(3) {
-
-              sh '''#!/busybox/sh
-              /kaniko/executor --whitelist-var-run --context `pwd` --destination ${QUAY_DOCKER_TAG}
-              '''
-            }
-          }
-        }
-        }
-        mattermostSend channel: "${MATTERMOST_CHANNEL}", endpoint: "${MATTERMOST_WEBHOOK}", message: "Job: ${JOB_NAME} \nStage: ${STAGE_NAME}\nBuild: ${BUILD_URL}\nCommit: ${GITHUB_PROJECT_URL}\nArtifact: ${NEXUS_ARTIFACT_URL}"
-      }
-    }
     stage('Deploy Dev') {
       steps {
         container('ubuntu') {
